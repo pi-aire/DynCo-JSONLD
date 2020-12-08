@@ -3,7 +3,7 @@
     "ex": "http://example.com/ns#",
     "xsd": "http://www.w3.org/2001/XMLSchema#",
     "open": "ex:OpenIssue",
-    "close": "ex:ClosedIssue",
+    "closed": "ex:ClosedIssue",
     "url": "@id",
     "state": "@type",
     "id": {
