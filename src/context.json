@@ -2,39 +2,44 @@
     "s": "http://schema.org/",
     "ex": "http://example.com/ns#",
     "xsd": "http://www.w3.org/2001/XMLSchema#",
-    "open": "ex:OpenIssue",
-    "closed": "ex:ClosedIssue",
-    "url": "@id",
-    "state": "@type",
     "repository_url":{
         "@type": "@id",
         "@reverse": "ex:issue"
     },
+    "open": "ex:OpenIssue",
+    "closed": "ex:ClosedIssue",
+    "url": "@id",
+    "state": "@type",
+    "User":"ex:User",
+    "Bot":"ex:Bot",
+    "type":"@type",
     "id": {
         "@id": "s:identifier",
         "@type": "xsd:integer"
     },
     "html_url": {
         "@id": "s:url",
-        "@type": "xsd:anyURL"
+        "@type": "xsd:anyURI"
     },
     "user": {
-        "@id": "s:creator",
-        "@type": "ex:User"
+        "@id": "s:creator"
     },
     "login": {
-        "@id": "s:accouuntId",
+        "@id": "s:accountId",
         "@type": "xsd:string"
     },
     "assignees":{
-        "@id" : "s:assignee",
-        "@type": "ex:User"
+        "@id" : "s:assignee"
     },
     "created_at": {
         "@id": "s:startDate",
         "@type": "xsd:dateTimeStamp"
     },
     "name": {
+        "@id": "s:name",
+        "@type": "xsd:string"
+    },
+    "title": {
         "@id": "s:name",
         "@type": "xsd:string"
     },
@@ -46,16 +51,14 @@
         "@id": "ex:authorAssociation",
         "@type": "xsd:string"
     },
-    "labels": {
-        "@id": "s:ItemList"
-    },
+    "labels": "ex:label",
     "description": {
         "@id": "s:description",
         "@type": "xsd:string"
     },
     "issue_url": {
         "@type": "@id",
-        "@reverse": "ex:comments"
+        "@reverse": "ex:comment"
     },
     "closed_at": {
         "@id": "s:endDate",
