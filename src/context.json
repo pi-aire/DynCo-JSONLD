@@ -6,6 +6,10 @@
     "closed": "ex:ClosedIssue",
     "url": "@id",
     "state": "@type",
+    "repository_url":{
+        "@type": "@id",
+        "@reverse": "ex:issue"
+    },
     "id": {
         "@id": "s:identifier",
         "@type": "xsd:integer"

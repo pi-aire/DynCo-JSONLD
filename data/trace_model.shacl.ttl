@@ -1,0 +1,231 @@
+prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+prefix sh: <http://www.w3.org/ns/shacl#>
+prefix xsd: <http://www.w3.org/2001/XMLSchema#>
+prefix ex: <http://example.com/ns#>
+prefix s: <http://schema.org/>
+prefix : <tag:#champin.net,2020-12-02:trace-model>
+
+# Shape à appliquer à tous les tickets (issues).
+:IssueShape a sh:NodeShape;
+    # Cette shape est vérifiée automatiquement sur tous les nœuds en position
+    # objet de la propriété ex:issue.
+    sh:targetObjectsOf ex:issue;
+
+    # Les nœuds ciblés par cette shape doivent également être conformes
+    # à la shape :IssueOrCommentShape (contraintes communes aux tickets
+    # et aux commentaires, cf. ci-dessous).
+    sh:node :IssueOrCommentShape;
+
+    # Les propriétés des nœuds ciblés par cette shape doivent vérifier les
+    # shapes suivantes.
+    sh:property [
+        # Il doit y avoir un unique arc entrant ex:issue,
+        # et son sujet doit être un IRI (ni blank node, ni litéraux).
+        sh:path [ sh:inversePath ex:issue ];
+        #sh:minCount 1;
+        sh:maxCount 1;
+        sh:nodeKind sh:IRI;
+    ],[
+        # Il doit y avoir un unique arc sortant s:identifier,
+        # et son objet doit être un entier (litéral de type xsd:integer).
+        sh:path s:identifier;
+        sh:datatype xsd:integer;
+        sh:minCount 1;
+        sh:maxCount 1;
+    ],[
+        # Il doit y avoir un unique arc sortant s:name,
+        # et son objet doit être un entier (litéral de type xsd:string).
+        sh:path s:name;
+        sh:datatype xsd:string;
+        sh:minCount 1;
+        sh:maxCount 1;
+    ],[
+        # Tous les objets des arcs sortants ex:label (s'il y en a) doivent
+        # être conformes à la shape :LabelShape (cf. ci-dessous).
+        sh:path ex:label;
+        sh:node :LabelShape;
+    ],[
+        # Tous les objets des arcs sortants ex:assignee (s'il y en a) doivent
+        # être conformes à la shape :UserShape (cf. ci-dessous).
+        sh:path ex:assignee;
+        sh:node :UserShape;
+    ],[
+        # Tous les objets des arcs sortants ex:comment (s'il y en a) doivent
+        # être conformes à la shape :CommentShape (cf. ci-dessous).
+        sh:path ex:comment;
+        sh:node :CommentShape;
+    ];
+.
+
+# Shape à appliquer à tous les tickets ouverts.
+:OpenIssueShape a sh:NodeShape;
+    # Cette shape est vérifiée automatiquement sur tous les nœuds de type
+    # ex:OpenIssue.
+    sh:targetClass ex:OpenIssue;
+
+    # Les propriétés des nœuds ciblés par cette shape doivent vérifier les
+    # shapes suivantes.
+    sh:property [
+        # Ces nœuds ne doivent pas avoir de propriété s:endDate.
+        sh:path s:endDate;
+        sh:maxCount 0;
+    ];
+.
+
+# Shape à appliquer à tous les tickets fermés.
+:ClosedIssueShape a sh:NodeShape;
+    # Cette shape est vérifiée automatiquement sur tous les nœuds de type
+    # ex:ClosedIssue.
+    sh:targetClass ex:ClosedIssue;
+
+    # Les propriétés des nœuds ciblés par cette shape doivent vérifier les
+    # shapes suivantes.
+    sh:property [
+        # Il doit y avoir un unique arc sortant s:endDate,
+        # et son objet doit être un litéral de type xsd:dateTimeStamp.
+        sh:path s:endDate;
+        sh:minCount 1;
+        sh:maxCount 1;
+        sh:datatype xsd:dateTimeStamp;
+    ];
+.
+
+# Shape commune aux tickets et aux commentaires.
+#
+# NB: cette shape n'a pas de propriété sh:tagetX, elle n'est donc pas
+# appliquée automatiquement. Mais elle est utilisée par :IssueShape et
+# ex:CommentShape.
+:IssueOrCommentShape a sh:NodeShape;
+    # Tous les nœuds ciblés par cette shape doivent être des IRIs
+    # (donc ni blank nodes, ni litéraux).
+    sh:nodeKind sh:IRI;
+
+    # Les propriétés des nœuds ciblés par cette shape doivent vérifier les
+    # shapes suivantes.
+    sh:property [
+        # Il doit y avoir un unique arc sortant s:url,
+        # et son objet doit être un litéral de type xsd:anyURI.
+        sh:path s:url;
+        sh:datatype xsd:anyURI;
+        sh:minCount 1;
+        sh:maxCount 1;
+    ],[
+        # Il doit y avoir un unique arc sortant s:creator,
+        # et son objet doit vérifier la shape :UserShape (cf. ci-dessous).
+        sh:path s:creator;
+        sh:minCount 1;
+        sh:maxCount 1;
+        sh:node :UserShape;
+    ],[
+        # Il doit y avoir un unique arc sortant s:startDate,
+        # et son objet doit être un litéral de type xsd:anyURI.
+        sh:path s:startDate;
+        sh:minCount 1;
+        sh:maxCount 1;
+        sh:datatype xsd:dateTimeStamp;
+    ],[
+        # Il doit y avoir un unique arc sortant ex:authorAssociation,
+        # et son objet doit être une des valeurs de la liste.
+        sh:path ex:authorAssociation;
+        sh:minCount 1;
+        sh:maxCount 1;
+        sh:in ("COLLABORATOR" "CONTRIBUTOR" "FIRST_TIMER" "FIRST_TIME_CONTRIBUTOR" "MANNEQUIN" "MEMBER" "NONE" "OWNER")
+        # voir https://docs.github.com/en/free-pro-team@latest/graphql/reference/enums#commentauthorassociation
+    ],[
+        # Il doit y avoir un unique arc sortant s:description,
+        # et son objet doit être une chaîne (litéral de type xsd:string).
+        sh:path s:description;
+        sh:datatype xsd:string;
+        sh:minCount 1;
+        sh:maxCount 1;
+    ];
+.
+
+# Shape pour les labels.
+#
+# NB: cette shape n'a pas de propriété sh:tagetX, elle n'est donc pas
+# appliquée automatiquement. Mais elle est utilisée par :IssueShape pour les
+# valeurs de la propriété ex:label.
+:LabelShape a sh:NodeShape;
+    # Tous les nœuds ciblés par cette shape doivent être des IRIs
+    # (donc ni blank nodes, ni litéraux).
+    sh:nodeKind sh:IRI;
+
+    # Les propriétés des nœuds ciblés par cette shape doivent vérifier les
+    # shapes suivantes.
+    sh:property [
+        # Il doit y avoir un unique arc sortant s:name,
+        # et son objet doit être une chaîne (litéral de type xsd:string).
+        sh:path s:name;
+        sh:datatype xsd:string;
+        sh:minCount 1;
+        sh:maxCount 1;
+    ],[
+        # Il doit y avoir au plus un arc sortant s:description,
+        # et son objet doit être une chaîne (litéral de type xsd:string).
+        sh:path s:description;
+        sh:datatype xsd:string;
+        sh:maxCount 1;
+    ];
+.
+
+# Shape pour les utilisateurs.
+#
+# NB: cette shape n'a pas de propriété sh:tagetX, elle n'est donc pas
+# appliquée automatiquement. Mais elle est utilisée par :IssueOrCommentShape
+# et :IssueShape, pour les valeurs de la propriété s:creator et ex:assignee,
+# respectivement.
+:UserShape a sh:NodeShape;
+    # Tous les nœuds ciblés par cette shape doivent être des IRIs
+    # (donc ni blank nodes, ni litéraux).
+    sh:nodeKind sh:IRI;
+
+    # Les propriétés des nœuds ciblés par cette shape doivent vérifier les
+    # shapes suivantes.
+    sh:property [
+        # Il doit y avoir un unique arc sortant rdf:type,
+        # et son objet doit être soit ex:User, soit ex:Bot.
+        sh:path rdf:type;
+        sh:in (ex:User ex:Bot);
+    ],[
+        # Il doit y avoir un unique arc sortant s:name,
+        # et son objet doit être une chaîne (litéral de type xsd:string)
+        # vérifiant l'expression régulière [a-zA-Z0-9]+.
+        sh:path s:accountId;
+        sh:datatype xsd:string;
+        sh:minCount 1;
+        sh:maxCount 1;
+        sh:pattern "[a-zA-Z0-9_]+";
+    ],[
+        # Il doit y avoir un unique arc sortant s:url,
+        # et son objet doit être un litéral de type xsd:anyURI.
+        sh:path s:url;
+        sh:datatype xsd:anyURI;
+        sh:minCount 1;
+        sh:maxCount 1;
+    ];
+.
+
+# Shape pour les commentaires.
+#
+# NB: cette shape n'a pas de propriété sh:tagetX, elle n'est donc pas
+# appliquée automatiquement. Mais elle est utilisée par :IssueShape pour les
+# valeurs de la propriété ex:comment.
+:CommentShape a sh:NodeShape;
+    # Les nœuds ciblés par cette shape doivent également être conformes
+    # à la shape :IssueOrCommentShape (contraintes communes aux tickets
+    # et aux commentaires, cf. ci-dessus).
+    sh:node :IssueOrCommentShape;
+
+    # Les propriétés des nœuds ciblés par cette shape doivent vérifier les
+    # shapes suivantes.
+    sh:property [
+        # Il doit y avoir un unique arc entrant ex:comment
+        # (un commentaire appartient à un et un seul ticket).
+        sh:path [ sh:inversePath ex:comment ];
+        sh:minCount 1;
+        sh:maxCount 1;
+    ];
+.
+
