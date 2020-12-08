@@ -12,8 +12,8 @@ with open(URL_CONTEXT) as contextR, open(URL_RAWJSON) as rawR:
     expanded = jsonld.expand(compacted)
     frame = jsonld.frame(compacted,{})
     normalized = jsonld.normalize(frame, {'algorithm': 'URDNA2015', 'format': 'application/n-quads'})
-    print(json.dumps(frame, indent=2))
-    with open("result.json","w") as result:
-        result.write(json.dumps(normalized, indent=2))
+    # print(normalized)
+    with open("result.nq","w", encoding='utf8', errors="ignore") as result:
+        result.write(normalized)
     
     
